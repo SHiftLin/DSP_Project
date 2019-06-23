@@ -1,0 +1,11 @@
+def Delta(C, n):  # [cofs_frame1,cofs_frame2,....,] n*13
+    nframes = C.shape[0]
+    D = np.zeros(C.shape)
+    for i in range(0, nframes):
+        if i < n:
+            D[i] = C[i+n]
+        elif i+n >= nframes:
+            D[i] = -C[i-n]
+        else:
+            D[i] = C[i+n]-C[i-n]
+    return D

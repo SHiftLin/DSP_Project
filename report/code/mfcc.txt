@@ -1,0 +1,21 @@
+# 输入：frame（一帧的信号），sr（采样率），L（滤波器数，默认为26），N（FFT点数，默认为256），M（DCT系数保留项数，默认为13），hz_low（最低频率，默认为0），hz_high（最高频率，默认为采样率的一半）
+# 输出：M项系数
+
+function MFCC(frame, L, N, M, hz_low, hz_high)
+    X = FFT(frame, N)
+    P = |X|*|X|/N
+    mel_low = hz2mel(hz_low)
+    mel_high = hz2mel(hz_high)
+    mel = linspace(mel_low, mel_high, L+2) # 将mel_low到mel_high之间等间隔划分成L+1个区间，得到L+2个边界
+    hz = mel2hz(mel) #转化为频率
+    f = Int(N*hz/sample_rate) # 将频率对应到FFT系数的下标
+    S = Array[0..L]
+    for i = 0 to L-1 do # 经过三角滤波器
+        S[i] = 0
+        for j = f[i] to f[i+1] do
+            S[i] = S[i] + P[j] * (j - f[i]) / (f[i+1] - f[i])
+        for j = f[i+1] to f[i+2] do
+            S[i] = S[i] + P[j] * (f[i+2] - j) / (f[i+2] - f[i+1])
+        S[i] = log(S[i] + 1e-5) # 增加一个极小值防止S[i]=0
+    cofs = DCT(s, L) # 求L点DCT
+    return cofs[0..M-1] # 返回cofs的前M项
